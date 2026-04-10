@@ -255,11 +255,13 @@ jobs:
 
       - name: Deploy Helm chart
         run: |
-          helm upgrade --install shopverse \
-            oci://${{ env.ECR_REGISTRY }}/shopverse-helmchart/shopverse \
+          # Strip hidden newlines/spaces from the registry variable
+          CLEAN_REGISTRY=$(echo "${{ env.ECR_REGISTRY }}" | xargs)
+          
+          helm upgrade --install shopverse oci://$CLEAN_REGISTRY/shopverse-helmchart/shopverse \
             --version 1.0.0-${{ github.sha }} \
-            --set frontend.image=${{ env.ECR_REGISTRY }}/shopverse-frontend:${{ github.sha }} \
-            --set backend.image=${{ env.ECR_REGISTRY }}/shopverse-backend:${{ github.sha }} \
+            --set frontend.image=$CLEAN_REGISTRY/shopverse-frontend:${{ github.sha }} \
+            --set backend.image=$CLEAN_REGISTRY/shopverse-backend:${{ github.sha }} \
             --set mysql.rootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }} \
             --set mysql.password=${{ secrets.MYSQL_PASSWORD }} \
             --set jwtSecret=${{ secrets.JWT_SECRET }} \
