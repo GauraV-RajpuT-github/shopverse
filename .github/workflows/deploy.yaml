@@ -255,21 +255,23 @@ jobs:
 
       - name: Deploy Helm chart
         run: |
-          # Strip hidden newlines/spaces from the registry variable
-          CLEAN_REGISTRY=$(echo "${{ env.ECR_REGISTRY }}" | xargs)
+          # 1. Force-clean the registry variable of all whitespace/newlines
+          CLEAN_REGISTRY=$(echo "${{ env.ECR_REGISTRY }}" | tr -d '[:space:]' | sed 's|https://||')
           
+          echo "Deploying to ECR Registry: $CLEAN_REGISTRY"
+
+          # 2. Run as a single-line command to prevent "2 argument" shell errors
           helm upgrade --install shopverse oci://$CLEAN_REGISTRY/shopverse-helmchart/shopverse \
             --version 1.0.0-${{ github.sha }} \
             --set frontend.image=$CLEAN_REGISTRY/shopverse-frontend:${{ github.sha }} \
             --set backend.image=$CLEAN_REGISTRY/shopverse-backend:${{ github.sha }} \
-            --set mysql.rootPassword=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-            --set mysql.password=${{ secrets.MYSQL_PASSWORD }} \
-            --set jwtSecret=${{ secrets.JWT_SECRET }} \
+            --set mysql.rootPassword="${{ secrets.MYSQL_ROOT_PASSWORD }}" \
+            --set mysql.password="${{ secrets.MYSQL_PASSWORD }}" \
+            --set jwtSecret="${{ secrets.JWT_SECRET }}" \
             --namespace shopverse \
             --create-namespace \
-            --wait --timeout 300s \
-            --cleanup-on-fail
-
+            --wait --timeout 300s
+            
       - name: Verify deployment
         run: |
           echo ""
