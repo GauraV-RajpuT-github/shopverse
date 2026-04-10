@@ -13,7 +13,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "shopverse-terraform-states"
+    bucket  = "gaurav-terraform-state-12345"
     key     = "eks/terraform.tfstate"
     region  = "us-east-1"
     encrypt = true
